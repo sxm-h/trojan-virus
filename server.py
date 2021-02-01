@@ -36,9 +36,7 @@ while True:
 		command = input(">>")
 		send(command)
 		msg_length = int(conn.recv(HEADER))
-		print(f"recv {msg_length}")
 		print(conn.recv(msg_length).decode(FORMAT))
-		print("yep")
 	break
 			
 
